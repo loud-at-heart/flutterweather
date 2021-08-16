@@ -17,9 +17,9 @@ class Weather extends StatelessWidget {
         Text('${weather.temp.toString()}°F',
             style: new TextStyle(color: Colors.white)),
         Image.network('https://openweathermap.org/img/w/${weather.icon}.png'),
-        Text(new DateFormat.yMMMd().format(weather.date),
+        Text(weather.date.toString(),
             style: new TextStyle(color: Colors.white)),
-        Text(new DateFormat.Hm().format(weather.date),
+        Text(weather.date.toString(),
             style: new TextStyle(color: Colors.white)),
       ],
     );

@@ -22,9 +22,9 @@ class WeatherItem extends StatelessWidget {
                 style: new TextStyle(color: Colors.black)),
             Image.network(
                 'https://openweathermap.org/img/w/${weather.icon}.png'),
-            Text(new DateFormat.yMMMd().format(weather.date),
+            Text(weather.date.toString(),
                 style: new TextStyle(color: Colors.black)),
-            Text(new DateFormat.Hm().format(weather.date),
+            Text(weather.date.toString(),
                 style: new TextStyle(color: Colors.black)),
           ],
         ),

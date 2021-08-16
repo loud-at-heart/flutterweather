@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutterweather/provider/db_provider.dart';
 import 'package:flutterweather/widgets/Weather.dart';
 import 'package:flutterweather/widgets/WeatherItem.dart';
 import 'package:http/http.dart' as http;
@@ -25,12 +27,14 @@ class MyAppState extends State<MyApp> {
   Location _location = new Location();
   String? error;
   String appId = '82f222e0183fd53e4b0659126b2db31b';
+  final DBProvider dbProvider=DBProvider.db;
+  bool isInternet=true;
 
   @override
   void initState() {
     super.initState();
-
-    loadWeather();
+    internetConnectivity();
+    // isInternet?loadWeather():loadOfflineWeather();
   }
 
   @override
@@ -68,28 +72,28 @@ class MyAppState extends State<MyApp> {
                         : IconButton(
                             icon: new Icon(Icons.refresh),
                             tooltip: 'Refresh',
-                            onPressed: loadWeather,
+                            onPressed: internetConnectivity,
                             color: Colors.white,
                           ),
                   ),
                 ],
               ),
             ),
-            SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  height: 200.0,
-                  child: forecastData != null
-                      ? ListView.builder(
-                          itemCount: forecastData!.list.length,
-                          scrollDirection: Axis.horizontal,
-                          itemBuilder: (context, index) => WeatherItem(
-                              weather: forecastData!.list.elementAt(index)))
-                      : Container(),
-                ),
-              ),
-            )
+            // SafeArea(
+            //   child: Padding(
+            //     padding: const EdgeInsets.all(8.0),
+            //     child: Container(
+            //       height: 200.0,
+            //       child: forecastData != null
+            //           ? ListView.builder(
+            //               itemCount: forecastData!.list.length,
+            //               scrollDirection: Axis.horizontal,
+            //               itemBuilder: (context, index) => WeatherItem(
+            //                   weather: forecastData!.list.elementAt(index)))
+            //           : Container(),
+            //     ),
+            //   ),
+            // )
           ]))),
     );
   }
@@ -119,6 +123,7 @@ class MyAppState extends State<MyApp> {
         return setState(() {
           weatherData =
               new WeatherData.fromJson(jsonDecode(weatherResponse.body));
+          dbProvider.createWeather(weatherData!);
           forecastData =
               new ForecastData.fromJson(jsonDecode(forecastResponse.body));
           isLoading = false;
@@ -128,6 +133,33 @@ class MyAppState extends State<MyApp> {
 
     setState(() {
       isLoading = false;
+    });
+  }
+  internetConnectivity() async {
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        // setState(() {
+        //   isInternet = true;
+        // });
+        print('connected');
+        loadWeather();
+      }
+    } on SocketException catch (_) {
+      setState(() {
+        isInternet = false;
+      });
+      print('not connected');
+      loadOfflineWeather();
+    }
+  }
+
+  loadOfflineWeather() async {
+    List<WeatherData> res = await dbProvider.getAllWeather();
+    res.forEach((element) {
+      setState(() {
+        weatherData = element;
+      });
     });
   }
 }
